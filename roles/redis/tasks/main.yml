@@ -1,0 +1,39 @@
+---
+- name: "downloads redis server"
+  unarchive:
+   copy: yes
+   src: "/software/{{ redis }}"
+   dest: "{{ software }}"
+#  copy:
+#    src: /software/redis-5.0.3.tar.gz
+#    dest: /usr/local/redis-5.0.3.tar.gz
+#  get_url:
+#    url: http://download.redis.io/releases/redis-5.0.3.tar.gz
+#    dest: "/usr/local/"
+- name: "install depen"
+  yum: 
+   name:
+   - gcc
+   - gcc-c++
+   - libstdc++-devel
+   state: latest
+- name: create data dir
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /opt/app
+    - /data/log/redis
+
+
+
+- name: "make redis"
+  shell: "cd /{{ software }}/{{ redisdir }};make MALLOC=libc"
+
+- name: "copy redis conf templates"
+  template:
+    src: redis.conf
+    dest: "{{ software }}/{{ redisdir }}/redis.conf"
+
+- name: "run redis server"
+  shell: "nohup /{{ software }}/{{ redisdir }}/src/redis-server {{ software }}/{{ redisdir }}/redis.conf &"

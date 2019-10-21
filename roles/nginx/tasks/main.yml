@@ -1,0 +1,30 @@
+---
+- name: create  dir
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /opt/app
+    - /data/log/nginx/logs
+    - "/{{ software }}/nginx/conf/cert"
+    - "/{{ software }}/nginx/conf/conf.d"
+- name: "Downloads nginx server"
+  unarchive:
+   copy: yes
+   src: "/software/{{ nginx }}"
+   dest: "{{ software }}"
+- name: "install depen"
+  yum: 
+   name:
+   - gcc
+   - pcre-devel 
+   - openssl-devel 
+   - zlib-devel 
+   state: latest
+- name: "install nginx"
+  shell:
+    "cd  /{{ software }}/{{ nginxdir }}/ && ./configure --sbin-path=/usr/sbin/nginx  --prefix=/{{ software }}/nginx --pid-path=/run/nginx.pid --with-http_stub_status_module --with-http_gzip_static_module   --with-http_realip_module  --with-http_ssl_module --with-http_v2_module --add-module=modules/ngx_http_concat_module --add-module=modules/ngx_http_sysguard_module --add-module=modules/ngx_backtrace_module --add-module=modules/ngx_http_upstream_check_module     --with-http_realip_module  --with-pcre && make && make install"
+- name: "templates nginx.conf"
+  template:
+    src: nginx.conf
+    dest: "/{{ software }}/nginx/conf/nginx.conf"

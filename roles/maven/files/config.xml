@@ -1,0 +1,215 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.32">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.3.9"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.3.9">
+      <jobProperties>
+        <string>org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty</string>
+        <string>jenkins.model.BuildDiscarderProperty</string>
+      </jobProperties>
+      <triggers/>
+      <parameters>
+        <string>autoRestart</string>
+        <string>BRANCH</string>
+        <string>buildDep</string>
+        <string>env</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.BooleanParameterDefinition>
+          <name>autoRestart</name>
+          <description>自动重启</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>buildDep</name>
+          <description>编译其他 </description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>env</name>
+          <description></description>
+          <choices>
+            <string>kuka_qk_test</string>
+            <string>kuka_crm_test</string>
+            <string>docker</string>
+            <string>mayi_yun_test</string>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <net.uaznia.lukanus.hudson.plugins.gitparameter.GitParameterDefinition plugin="git-parameter@0.9.11">
+          <name>BRANCH</name>
+          <uuid>20e072af-6ccb-4848-845e-6669646b58ac</uuid>
+          <type>PT_BRANCH</type>
+          <tagFilter>*</tagFilter>
+          <branchFilter>origin/(.*)</branchFilter>
+          <defaultValue>product_dev</defaultValue>
+          <selectedValue>DEFAULT</selectedValue>
+          <listSize>5</listSize>
+        </net.uaznia.lukanus.hudson.plugins.gitparameter.GitParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.78">
+          <name>module</name>
+          <description></description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>10</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>base-service/base-service-core,user-service/user-service-core,shop-api-service,goods-service/goods-service-core,order-service/order-service-core,app-service/app-service-core,promotion-service/promotion-service-core,message-service/message-service-core,info-service/info-service-core,schedule-service/schedule-service-core,third-party-service/third-party-service-core,customer-service/customer-service-core,cms-service/cms-service-core,gateway-service,distribution-service/distribution-service-core</value>
+          <defaultValue>base-service/base-service-core</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>3</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.7"/>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.5.12">
+      <gitLabConnection></gitLabConnection>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.70">
+    <script>pipeline {
+  agent any
+  tools {
+    maven &apos;local-maven&apos;
+  }
+  
+  parameters {
+    booleanParam defaultValue: false, description: &apos;自动重启&apos;, name: &apos;autoRestart&apos;
+    booleanParam defaultValue: false, description: &apos;编译其他 &apos;, name: &apos;buildDep&apos;
+    choice choices: [&apos;kuka_qk_test&apos;,&apos;kuka_crm_test&apos;,&apos;docker&apos;,&apos;mayi_yun_test&apos;], description: &apos;&apos;, name: &apos;env&apos;
+    gitParameter branchFilter: &apos;origin/(.*)&apos;, defaultValue: &apos;product_dev&apos;, name: &apos;BRANCH&apos;, selectedValue: &apos;DEFAULT&apos;,type: &apos;PT_BRANCH&apos;
+  }
+  // 配置项
+  options {
+    //timestamps
+    // 保留最后3个构件记录
+    buildDiscarder(logRotator(numToKeepStr: &apos;3&apos;))
+    // 不允许并行执行Pipeline,可用于防止同时访问共享资源等
+    disableConcurrentBuilds()
+  }
+  stages {
+    // 编译阶段
+    stage(&apos;SCM&apos;) {
+      steps {
+        git branch: &quot;${params.BRANCH}&quot;, credentialsId: &apos;2d3e8684-49ae-40c2-b762-fef4e6275ea3&apos;, url: &apos;http://code.mayi888.com/mayi888/mayi-service.git&apos;
+      }
+    }
+    // 发布阶段
+    stage(&apos;build dependencies proj&apos;) {
+      when {
+        expression { params.buildDep }
+      }
+      steps {
+          script {
+              if(params.env == &apos;kuka_crm_test&apos;){
+                  withMaven(maven: &apos;maven&apos;, mavenSettingsFilePath: &apos;/opt/apache-maven-3.3.1/conf/settings.xml&apos;) {
+                    build(job: &apos;gjdz_commons&apos;, parameters:[gitParameter(name: &apos;branch&apos;, value: &apos;crm_dev&apos;)])
+                  }
+              } else {
+                  withMaven(maven: &apos;maven&apos;, mavenSettingsFilePath: &apos;/opt/apache-maven-3.3.1/conf/settings.xml&apos;) {
+                    build(job: &apos;commons&apos;, parameters:[gitParameter(name: &apos;branch&apos;, value: params.env==&apos;mayi_yun_test&apos;?&apos;product&apos;:&apos;master&apos;)])
+                  }
+              }
+          }
+      }
+    }
+    // 编译阶段
+    stage(&apos;Build&apos;) {
+      steps {
+          withMaven(maven: &apos;maven&apos;, mavenSettingsFilePath: &apos;/opt/apache-maven-3.3.1/conf/settings.xml&apos;) {
+            sh &apos;java -version&apos;
+            sh &apos;mvn clean&apos;
+            sh &apos;echo ${env}-${module}&apos;
+            script {
+                if (params.env == &apos;docker&apos;) {
+                    sh &apos;mvn -Dmaven.test.skip=true -e -pl ${module} -am package -Ddockerfile.skip=false dockerfile:push&apos;
+                    //   sh &apos;mvn -Dmaven.test.skip=true -e  -pl ${module} -amd package docker:build -DpushImage&apos;
+                } 
+                else {
+                      sh &apos;mvn -Dmaven.test.skip=true -e  -pl ${module} -am install&apos;
+                      //sh &apos;mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent -Dmaven.test.failure.ignore=true -e -pl ${module} -am install&apos;
+                      sh &apos;mkdir -p servicePackages&apos;
+                      sh &apos;rm -rf servicePackages/*&apos;
+                      sh &apos;cp -r -f */**/target/*.jar servicePackages 2&gt;/dev/null || :&apos;
+                      sh &apos;cp -r -f **/target/*.jar servicePackages 2&gt;/dev/null || :&apos;
+                      sh &apos;ls -l /opt/tomcat/servicePackages&apos;
+                }
+            }
+          }
+        // jacoco execPattern: &apos;target/jacoco.exec&apos;
+      }
+    }
+    // 发布阶段
+    stage(&apos;Deploy Test Env&apos;) {
+      steps {
+          script{
+              if(params.env == &apos;kuka_crm_test&apos;){
+                //to test crm
+                sshPublisher(publishers: [sshPublisherDesc(configName: &apos;test-vm13&apos;, transfers: [sshTransfer(excludes: &apos;&apos;, execCommand: &apos;ls -l /opt/test/tomcat-test/servicePackages/gjdz&apos;, execTimeout: 0, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: &apos;[, ]+&apos;, remoteDirectory: &apos;test/tomcat-test/servicePackages/gjdz&apos;, remoteDirectorySDF: false, removePrefix: &apos;servicePackages&apos;, sourceFiles: &apos;servicePackages/*&apos;)], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+              } else if(params.env == &apos;mayi_yun_test&apos;){
+                  echo &quot;test&quot;
+                  sshPublisher(publishers: [sshPublisherDesc(configName: &apos;host18@vm02&apos;, transfers: [sshTransfer(cleanRemote: false, excludes: &apos;&apos;, execCommand: &apos;ls -l /opt/tomcat/servicePackages&apos;, execTimeout: 300000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: &apos;[, ]+&apos;, remoteDirectory: &apos;&apos;, remoteDirectorySDF: false, removePrefix: &apos;&apos;, sourceFiles: &apos;servicePackages/*&apos;)], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+              }
+              else if(params.env == &apos;kuka_qk_test&apos;){
+                  sshPublisher(publishers: [sshPublisherDesc(configName: &apos;test-vm22&apos;, transfers: [sshTransfer(excludes: &apos;&apos;, execCommand: &apos;ls -l /opt/test/tomcat-test/servicePackages&apos;, execTimeout: 0, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: &apos;[, ]+&apos;, remoteDirectory: &apos;test/tomcat-test/servicePackages&apos;, remoteDirectorySDF: false, removePrefix: &apos;servicePackages&apos;, sourceFiles: &apos;servicePackages/*&apos;)], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+              }
+          }
+       
+      }
+
+    }
+    // 重启
+    stage(&apos;Restart Service&apos;) {
+      when {
+        expression { params.autoRestart }
+      }
+      steps {
+          script { 
+              if (params.env == &apos;mayi_yun_test&apos;){
+                 build job: &apos;test-restart-tomcat&apos;, parameters: [string(name: &apos;host&apos;, value: &apos;.18@v2&apos;), string(name: &apos;app&apos;, value: &apos;mayi-server&apos;), string(name: &apos;env&apos;, value: params.env), string(name: &apos;model&apos;, value: params.module)]
+              }else if(params.env == &apos;kuka_crm_test&apos;){
+                  build job: &apos;gjdz_test-restart-tomcat&apos;, parameters: [string(name: &apos;host&apos;, value: &apos;test-vm13&apos;), string(name: &apos;app&apos;, value: &apos;mayi-server&apos;), string(name: &apos;env&apos;, value: params.env), string(name: &apos;model&apos;, value: params.module)]
+              }else if(params.env == &apos;kuka_qk_test&apos;){
+                  
+              }
+              else{
+                build job: &apos;test-restart-tomcat&apos;, parameters: [string(name: &apos;host&apos;, value: &apos;.29&apos;), string(name: &apos;app&apos;, value: &apos;mayi-server&apos;), string(name: &apos;env&apos;, value: params.env), string(name: &apos;model&apos;, value: params.module)]
+              }
+              
+      }
+    }
+    }
+  }
+post {
+    always {
+        echo &apos;结束&apos;
+    }
+    // 成功时触发
+    success{
+        echo &apos;成功&apos;
+    }
+
+  }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

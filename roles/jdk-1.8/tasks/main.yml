@@ -1,0 +1,22 @@
+---
+- name: "Downloads JDK server"
+  unarchive:
+   copy: yes
+   src: "/software/{{ jdk }}"
+   dest: "/usr/local"
+- name: "aes解密问题解决"
+  copy: 
+    src: /software/UnlimitedJCEPolicyJDK8/local_policy.jar 
+    dest: "{{ softwarebase }}/jdk1.8.0_202/jre/lib/security"
+- name: "aes解密问题解决"
+  copy: 
+    src: /software/UnlimitedJCEPolicyJDK8/US_export_policy.jar
+    dest: "{{ softwarebase }}/jdk1.8.0_202/jre/lib/security"
+- name: set env 
+  lineinfile:
+    dest: /etc/profile
+    line: "{{ item }}"
+  with_items:
+    - "export JAVA_HOME=/usr/local/{{ jdkdir }}"
+    - export CLASSPATH=.:${JAVA_HOME}/jre/lib/rt.jar:${JAVA_HOME}/lib/dt.jar:${JAVA_HOME}/lib/tools.jar
+    - export PATH=$PATH:${JAVA_HOME}/bin

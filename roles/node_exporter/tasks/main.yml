@@ -1,0 +1,9 @@
+---
+- name: "downloads node_exporter server"
+  unarchive:
+   copy: yes
+   src: "/software/{{ node }}"
+   dest: "{{ softwarebase }}"
+
+- name: "run node_exporter server"
+  shell: "nohup /{{ softwarebase }}/{{ nodedir }}/node_exporter &"

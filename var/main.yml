@@ -1,0 +1,50 @@
+---
+#zabbix
+zabbix_server: 172.16.0.42
+#bin
+#software dir
+bindip: "{{ ansible_eth0['ipv4']['address'] }}"
+software: /opt/app
+#base dir
+#
+softwarebase: /usr/local
+
+#nginx work dir
+ngwork: /usr/local/nginx/conf/conf.d
+zabbix_agent_packages:
+  - zabbix-agent
+#mysql args
+login_password: 1q2w3e4r
+mysql_port: 3306
+#node_exproter
+node: node_exporter-0.18.1.linux-amd64.tar.gz
+nodedir: node_exporter-0.18.1.linux-amd64
+#redis version
+redis: redis-5.0.3.tar.gz
+redisdir: redis-5.0.3
+#activemq
+activemq: apache-activemq-5.15.9-bin.tar.gz
+activemqdir: apache-activemq-5.15.9 
+#activemq: apache-activemq-5.9.0.zip
+#activemqdir: apache-activemq-5.9.0 
+#zookeeper
+zookeeper: zookeeper-3.4.14.tar.gz
+zookeeperdir: zookeeper-3.4.14
+#nginx
+nginx: tengine-2.3.1.tar.gz
+nginxdir: tengine-2.3.1
+#git
+git: git-2.9.5.tar.xz
+gitdir: git-2.9.5
+#jdk
+jdk: jdk-8u202-linux-x64.tar.gz
+jdkdir: jdk1.8.0_202
+#maven
+maven: apache-maven-3.6.1-bin.tar.gz
+mavendir: apache-maven-3.6.1
+#mongo
+mongo: mongodb-linux-x86_64-4.0.9.tgz
+mongodir: mongodb-linux-x86_64-4.0.9
+#nacos
+nacos: nacos-server-1.0.0.tar.gz
+

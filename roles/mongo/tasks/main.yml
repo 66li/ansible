@@ -1,0 +1,35 @@
+---
+- name: "Downloads mongo server"
+  unarchive:
+   copy: yes
+   src: "/software/{{ mongo }}"
+   dest: "{{ software }}"
+#  unarchive:
+#   src: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.9.tgz
+#   dest: /usr/local/
+#   remote_src: yes
+#- name: "start mongo"
+#  shell: "/usr/local/mongo/sbin/mongo"
+- name: create data dir
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /data/app-data/mongodb/
+    - /var/run/mongodb/
+    - /data/log/mongodb/
+    -  "/{{ software }}/{{ mongodir }}/conf/"
+- name: "templates mongo.conf"
+  template:
+    src: mongo.conf
+    dest: "/{{ software }}/{{ mongodir }}/conf/mongo.conf"
+- name: set env 
+  lineinfile:
+    dest: /etc/profile
+    line: "{{ item }}"
+  with_items:
+    - "export MONGO_HOME=/{{ software }}/{{ mongodir }}"
+    - export PATH=$PATH:$MONGO_HOME/bin
+- name: start mongo
+  shell:
+    " /{{ software }}/{{ mongodir }}/bin/mongod -f /{{ software }}/{{ mongodir }}/conf/mongo.conf "

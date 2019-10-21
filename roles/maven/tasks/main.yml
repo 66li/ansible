@@ -1,0 +1,21 @@
+---
+- name: "Downloads maven server"
+  unarchive:
+   copy: yes
+   src: "/software/{{ maven }}"
+   dest: "{{ softwarebase }}"
+#  unarchive:
+#   src: https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+#   dest: /usr/local/
+#   remote_src: yes
+- name: "copy mvn conf templates"
+  template:
+    src: config.xml
+    dest: "{{ softwaraebase }}/{{ mavendir }}/conf/config.xml"
+- name: set env 
+  lineinfile:
+    dest: /etc/profile
+    line: "{{ item }}"
+  with_items:
+    - "export MAVEN_HOME=/usr/local/{{ mavendir }}"
+    - export PATH=$PATH:${MAVEN_HOME}/bin

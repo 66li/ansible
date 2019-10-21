@@ -1,0 +1,12 @@
+---
+- name: "downloads activemq server"
+  unarchive:
+   copy: yes
+   src: "/software/{{ activemq }}"
+   dest: "{{ software }}"
+#- name: "templates activemq.xml"
+#  template:
+#    src: activemq.xml
+#    dest: "/{{ software }}/{{ activemqdir }}/conf/activemq.xml"
+- name: "run activemq server"
+  shell: "nohup bash /{{ software }}/{{ activemqdir }}/bin/activemq start &"

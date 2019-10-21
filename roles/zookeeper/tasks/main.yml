@@ -1,0 +1,25 @@
+---
+- name: create data dir
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /opt/app
+    - /data/zookeeper
+    - /data/log/zookeeper
+- name: "downloads zookeeper server"
+#  get_url:
+#    url: https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/stable/zookeeper-3.4.14.tar.gz
+#    dest: "/usr/local/"
+   
+  unarchive:
+   copy: yes
+   src: "/software/{{ zookeeper }}"
+   dest: "{{ software }}"
+- name: "copy zk conf templates"
+  template:
+    src: zoo.cfg
+    dest: "{{ software }}/{{ zookeeperdir }}/conf/zoo.cfg"
+
+- name: "run zk server"
+  shell: "bash {{ software }}/{{ zookeeperdir }}/bin/zkServer.sh start &"
